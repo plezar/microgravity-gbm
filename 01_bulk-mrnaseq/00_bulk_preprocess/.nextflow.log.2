@@ -1,0 +1,164 @@
+Feb-09 13:44:51.039 [main] DEBUG nextflow.cli.Launcher - $> nextflow run /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/main.nf --analysis demux --fastq1 /afs/crc/group/TIMELab/SpaceU87_Nov2024/ILMN_2346_HarkerBrent_ND_1Pool_Nov2024//combo_R1.fastq.gz --fastq2 /afs/crc/group/TIMELab/SpaceU87_Nov2024/ILMN_2346_HarkerBrent_ND_1Pool_Nov2024//combo_R2.fastq.gz --type_of_experiment stranded_umi --output_dir /afs/crc/group/TIMELab/SpaceU87_Nov2024/CogentAP_OUT/ --barcodes_file /afs/crc/group/TIMELab/SpaceU87_Nov2024/WellList.txt
+Feb-09 13:44:51.090 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.04.4
+Feb-09 13:44:51.199 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/afs/crc.nd.edu/user/m/mzarodn2/.nextflow/plugins; core-plugins: nf-amazon@2.5.3,nf-azure@1.6.1,nf-cloudcache@0.4.1,nf-codecommit@0.2.1,nf-console@1.1.3,nf-ga4gh@1.3.0,nf-google@1.13.2-patch1,nf-tower@1.9.1,nf-wave@1.4.2-patch1
+Feb-09 13:44:51.210 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Feb-09 13:44:51.211 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Feb-09 13:44:51.213 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Feb-09 13:44:51.222 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Feb-09 13:44:51.239 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/nextflow.config
+Feb-09 13:44:51.241 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/nextflow.config
+Feb-09 13:44:51.262 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /afs/crc.nd.edu/user/m/mzarodn2/.nextflow/secrets/store.json
+Feb-09 13:44:51.265 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@9f6e406] - activable => nextflow.secret.LocalSecretsProvider@9f6e406
+Feb-09 13:44:51.295 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Feb-09 13:44:52.778 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Feb-09 13:44:52.790 [main] DEBUG nextflow.cli.CmdRun - Launching `/afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/main.nf` [magical_gautier] DSL2 - revision: f5cc25a2dd
+Feb-09 13:44:52.791 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Feb-09 13:44:52.791 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Feb-09 13:44:52.829 [main] DEBUG nextflow.Session - Session UUID: 031b3b78-b50c-4434-8d37-436b009f46a0
+Feb-09 13:44:52.829 [main] DEBUG nextflow.Session - Run name: magical_gautier
+Feb-09 13:44:52.830 [main] DEBUG nextflow.Session - Executor pool size: 24
+Feb-09 13:44:52.835 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Feb-09 13:44:52.839 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=72; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Feb-09 13:44:52.856 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.04.4 build 5917
+  Created: 01-08-2024 07:05 UTC (03:05 EDT)
+  System: Linux 5.14.0-503.11.1.el9_5.x86_64
+  Runtime: Groovy 4.0.21 on OpenJDK 64-Bit Server VM 21-internal-adhoc.conda.src
+  Encoding: UTF-8 (UTF-8)
+  Process: 1124024@d32cepyc194.crc.nd.edu [10.32.91.155]
+  CPUs: 24 - Mem: 250.9 GB (127.5 GB) - Swap: 0 (0)
+Feb-09 13:44:54.219 [main] DEBUG nextflow.Session - Work-dir: /afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work [afs]
+Feb-09 13:44:54.301 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Feb-09 13:44:54.307 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Feb-09 13:44:54.354 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Feb-09 13:44:54.361 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 25; maxThreads: 1000
+Feb-09 13:44:54.507 [main] DEBUG nextflow.Session - Session start
+Feb-09 13:44:54.511 [main] DEBUG nextflow.Session - Using default localLib path: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/lib
+Feb-09 13:44:54.699 [main] DEBUG nextflow.Session - Adding to the classpath library: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/lib
+Feb-09 13:44:54.908 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Feb-09 13:44:54.919 [main] INFO  nextflow.Nextflow - Name: Cogent Analysis Pipeline NGS Tool Suite
+Version: v3.1.22
+Analysis type: demux
+--
+run as: nextflow run /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/main.nf --analysis demux --fastq1 /afs/crc/group/TIMELab/SpaceU87_Nov2024/ILMN_2346_HarkerBrent_ND_1Pool_Nov2024//combo_R1.fastq.gz --fastq2 /afs/crc/group/TIMELab/SpaceU87_Nov2024/ILMN_2346_HarkerBrent_ND_1Pool_Nov2024//combo_R2.fastq.gz --type_of_experiment stranded_umi --output_dir /afs/crc/group/TIMELab/SpaceU87_Nov2024/CogentAP_OUT/ --barcodes_file /afs/crc/group/TIMELab/SpaceU87_Nov2024/WellList.txt
+started at: 2025-02-09T13:44:54.324613080-05:00
+config files: [/afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/nextflow.config]
+
+Feb-09 13:44:58.680 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:DEMUX` matches process DEMUX_WORKFLOW:DEMUX
+Feb-09 13:44:58.688 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Feb-09 13:44:58.689 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Feb-09 13:44:58.693 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Feb-09 13:44:58.697 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=24; memory=250.9 GB; capacity=24; pollInterval=100ms; dumpInterval=5m
+Feb-09 13:44:58.699 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Feb-09 13:44:58.738 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: FASTQC_TRIM, SALMON_QUANT_UMIONLY, DEDUP_UMITOOLS, CREATE_GENE_INFO, COGENTDS_REPORT, PROCESS_EXON_INTRON, STAR_FUSION_INDEX, ANNOTATION_DOWNLOAD, CONCAT_BINNED_READS, PICARD_MARKDUPLICATES, COGENTDS_REPORT_UMIONLY, FASTQC_DEMUX, PREPROCESS_SUMMARY_FILES, DNA_QC_REPORT, IMMUNE_REPORT, DEDUP_UMITOOLS_UMIONLY, PROCESS_EXON_ISOFORMS_UMIONLY, SAMTOOLS_FILTERUNMAPPED, PICARD_DSSORT, DNA_REPORT, SORTMERNA_INDEX, PICARD_DSMARKDUPLICATES, SORTMERNA, TRIMMOMATIC, GINKGO_PROCESS, SAMTOOLS_BAMTOBED, DEMUX_WORKFLOW:DEMUX, PICARD_SORTSAM, BOWTIE2_ALIGN, STAR_FUSION_REPORT, STAR_ALIGN, FINALIZE_SEURAT_OBJECTS_UMIONLY, GFFREAD_INTRON, FASTQC, BOWTIE2_INDEX, STAR_LOAD_GENOME, COVERAGE, FILTER_READS, GENOME_DOWNLOAD, MODIFY_FUSION_OUT, CUTADAPT, GINKGO_DOWNLOAD, GINKGO_BINUNSORTED, DEMUX, MULTIQC_REPORT, PICARD_INSERTMETRICS, FINALIZE_SEURAT_OBJECTS, CREATE_ANALYZE_STATS, STAR_FUSION, CORRELATION, SAMTOOLS_DOWNSAMPLE, CREATE_TRANSCRIPT_INFO, PROCESS_EXON_ISOFORMS, COLLECT_BAMS, CLEAN_COUNTS, SORTMERNA_DOWNLOAD, STAR_INDEX, PICARD_DSALIGNMETRICS, PROCESS_EXON_INTRON_UMIONLY, SALMON_QUANT, ADD_INTRONS_TO_GTF, TRUST4, MITOCHONDRIAL_GENE_LIST
+Feb-09 13:44:58.753 [main] DEBUG nextflow.Session - Igniting dataflow network (4)
+Feb-09 13:44:58.757 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > DEMUX_WORKFLOW:DEMUX
+Feb-09 13:44:58.758 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_5963506d9d3f53cd: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/modify_fusion_out.nf
+  Script_c5127ce69c0cadb5: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/cutadapt.nf
+  Script_73b063fdc40581af: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/cogentds_report.nf
+  Script_19bbb3468350c541: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/dedup_umitools.nf
+  Script_acea9072868db22b: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/add_introns_to_gtf.nf
+  Script_1625b3fded7de57a: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/filter_reads.nf
+  Script_ccab21a674da209d: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/genome_download.nf
+  Script_fbf2947faedc64b7: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/create_gene_info.nf
+  Script_af07636e91cd6986: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_markduplicates.nf
+  Script_c0c9ea48d3ad3d01: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/./../modules/star_fusion.nf
+  Script_443384f5cd6993d2: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/finalize_seurat_objects.nf
+  Script_d8509b3fcd7dd3d5: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/star_load_genome.nf
+  Script_06dd0cbec4e9c86e: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_insertmetrics.nf
+  Script_40af553540200c13: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/rna_analyze_workflow.nf
+  Script_e7db09fd65142107: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/create_analyze_stats.nf
+  Script_2b83ddc203e5f5b2: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_dssort.nf
+  Script_31bb2036c397820b: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/star_index.nf
+  Script_281e2575bb7028a9: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/samtools_filterunmapped.nf
+  Script_aaadc0c99800dbb3: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/sortmerna_index.nf
+  Script_8dcf6a3e1654dfc9: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/concat_binned_reads.nf
+  Script_575cad6fe06e528c: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/mitochondrial_gene_list.nf
+  Script_10ed99ae739ec20d: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/ginkgo_binunsorted.nf
+  Script_54d12eb11f18ad07: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/demux.nf
+  Script_d1b05ba5e0e754c5: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/star_fusion_report.nf
+  Script_ed6d03892f724bdb: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/create_transcript_info.nf
+  Script_cd98ddb5454ff9d5: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/clean_counts.nf
+  Script_5e8c1fd047c0fa7a: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_dsmarkduplicates.nf
+  Script_b53bbc15207cea7d: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/sortmerna_download.nf
+  Script_06a859996ee025da: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/ginkgo_download.nf
+  Script_e7f506239b1bc459: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/sortmerna.nf
+  Script_a8d726b64262e09a: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/bowtie2_align.nf
+  Script_9b1f5fc58a7da052: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/samtools_downsample.nf
+  Script_9108b90d9c5c3ad4: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/immune_workflow.nf
+  Script_4c885ad42387b840: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/process_exon_isoforms.nf
+  Script_9919b1e82eb97cb0: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/trimmomatic.nf
+  Script_16a501f9ac094f00: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/preprocess_summary_files.nf
+  Script_8d16901e17da4124: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/correlation.nf
+  Script_cdfe72a028dc10f3: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/fastqc_trim.nf
+  Script_8b51e079df1b23a3: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/./fusion_workflow.nf
+  Script_2f59f289039af269: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/dna_analyze_workflow.nf
+  Script_fda86bc7a3c3ea3b: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/dna_qc_report.nf
+  Script_f75782469a325794: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/immune_report.nf
+  Script_c683db722f225110: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/salmon_quant.nf
+  Script_c415623856a720c7: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/fastqc.nf
+  Script_e988d3c345066494: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/star_fusion_index.nf
+  Script_c57fe85432dc3523: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_dsalignmetrics.nf
+  Script_6979f722ec8c2e7b: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/bowtie2_index.nf
+  Script_5926a989216fc943: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/star_align.nf
+  Script_830f76367c69a9d7: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/ginkgo_process.nf
+  Script_7543b0eb9ce1a867: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/samtools_bamtobed.nf
+  Script_1dba15c1c1cc6d5a: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/annotation_download.nf
+  Script_a6dd0c93c24deb74: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/process_exon_intron.nf
+  Script_8bde8d65bf41fed5: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/trust4.nf
+  Script_3cc70d565e03c150: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/fastqc_demux.nf
+  Script_bb970ae8bbdf6bd9: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/coverage.nf
+  Script_3f01ad94d014f841: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/main.nf
+  Script_5c1d59960e19c07e: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/gffread_intron.nf
+  Script_d52965746d0e5f6f: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/demux_workflow.nf
+  Script_e5dd2c08e1b1216d: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/picard_sortsam.nf
+  Script_2cf61ec2294d7b80: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/collect_bams.nf
+  Script_91c3f017c00d831a: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/multiqc_report.nf
+  Script_3f9a015b72d646b3: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/../modules/dna_report.nf
+  Script_0b4c5d5e5facc14d: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/./workflows/add_genome_workflow.nf
+Feb-09 13:44:58.758 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Feb-09 13:44:58.758 [main] DEBUG nextflow.Session - Session await
+Feb-09 13:44:58.956 [Actor Thread 5] INFO  nextflow.conda.CondaCache - Creating env using mamba: /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/config/env/demux_env.yaml [cache /afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work/conda/demux_env-530d1c72b601278fdcb02537580e1de6]
+Feb-09 13:47:12.525 [Actor Thread 5] DEBUG nextflow.conda.CondaCache - 'mamba' create complete env=/afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/config/env/demux_env.yaml path=/afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work/conda/demux_env-530d1c72b601278fdcb02537580e1de6
+Feb-09 13:47:12.572 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Feb-09 13:47:12.574 [Task submitter] INFO  nextflow.Session - [d6/2b7374] Submitted process > DEMUX_WORKFLOW:DEMUX (1)
+Feb-09 13:47:14.831 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: DEMUX_WORKFLOW:DEMUX (1); status: COMPLETED; exit: 99; error: -; workDir: /afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work/d6/2b73740cd6494e1ab1838a5de36194]
+Feb-09 13:47:14.832 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=72; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Feb-09 13:47:14.836 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=DEMUX_WORKFLOW:DEMUX (1); work-dir=/afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work/d6/2b73740cd6494e1ab1838a5de36194
+  error [nextflow.exception.ProcessFailedException]: Process `DEMUX_WORKFLOW:DEMUX (1)` terminated with an error exit status (99)
+Feb-09 13:47:14.848 [TaskFinalizer-1] ERROR nextflow.processor.TaskProcessor - Error executing process > 'DEMUX_WORKFLOW:DEMUX (1)'
+
+Caused by:
+  Process `DEMUX_WORKFLOW:DEMUX (1)` terminated with an error exit status (99)
+
+
+Command executed:
+
+  python3 /afs/crc.nd.edu/user/m/mzarodn2/Private/soft/CogentAP/lib/cogent.py demux -i combo_R1.fastq.gz -p combo_R2.fastq.gz -b WellList.txt -t stranded_umi -o demultiplexed_fastqs          -m 1  -n 16 --n_writers 8          --i7_rc auto --i5_rc auto --read_buffer 0.1  --prog 10000000             --use_barcodes 10000         --check_reads 200000000 --min_reads 1
+
+Command exit status:
+  99
+
+Command output:
+  [2025-02-09 13:47:14] Final number of loaded barcodes: 13
+  Error: There is no overlap detected between expected and observed i5 index sequences. Please check that the input FASTQ files and well list are matched.
+
+Command error:
+  [2025-02-09 13:47:14] Final number of loaded barcodes: 13
+  Error: There is no overlap detected between expected and observed i5 index sequences. Please check that the input FASTQ files and well list are matched.
+
+Work dir:
+  /afs/crc.nd.edu/group/TIMELab/SpaceU87_Nov2024/work/d6/2b73740cd6494e1ab1838a5de36194
+
+Tip: view the complete command output by changing to the process work dir and entering the command `cat .command.out`
+Feb-09 13:47:14.852 [main] DEBUG nextflow.Session - Session await > all processes finished
+Feb-09 13:47:14.861 [TaskFinalizer-1] DEBUG nextflow.Session - Session aborted -- Cause: Process `DEMUX_WORKFLOW:DEMUX (1)` terminated with an error exit status (99)
+Feb-09 13:47:14.871 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Feb-09 13:47:14.871 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Feb-09 13:47:14.875 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=1; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=35.5s; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=16; peakMemory=24 GB; ]
+Feb-09 13:47:14.875 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Feb-09 13:47:15.248 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Feb-09 13:47:15.319 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Feb-09 13:47:15.343 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

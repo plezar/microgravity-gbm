@@ -1,0 +1,9 @@
+name: umitools
+channels:
+  - conda-forge
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - umi_tools
+  - trimmomatic
+prefix: /afs/crc.nd.edu/user/m/mzarodn2/miniconda3/envs/umitools

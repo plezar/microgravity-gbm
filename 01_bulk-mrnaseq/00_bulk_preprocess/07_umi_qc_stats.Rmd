@@ -1,0 +1,225 @@
+---
+title: "Space Spheroids Nov 2024 QC"
+author: "Maksym Zarodniuk"
+date: "2025-02-15"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(patchwork))
+```
+
+## STAR
+
+```{r}
+path <- "/Users/plezar/Documents/TIME-Lab/SpaceU87_Nov2024/STAR_logs/"
+files <- list.files(path, pattern = ".out")
+```
+
+```{r}
+merge_out <- function (files) {
+  df <- read.delim(paste0(path, files[1]), header= F) %>% 
+    filter(grepl("Number of input reads", V1) |
+             grepl("Uniquely mapped reads", V1) |
+             grepl("% of reads unmapped: too short", V1) |
+             grepl("Uniquely mapped reads %", V1)) %>% 
+    set_names("Var", "value") %>%
+    mutate(Var = gsub("^\\s+", "", Var)) %>%
+    mutate(Var = gsub("\\|", "", Var)) %>%
+    mutate(value = as.numeric(gsub("%", "", value)))
+}
+
+#x <- gsub("^\\s+", "", df$Var)   # Remove spaces at the beginning
+#x <- gsub("\\|", "", df$Var)     # Remove pipe symbol
+
+results <- lapply(files, merge_out)
+names(results) <- files
+
+results <- bind_rows(results, .id="Sample")
+results$Sample <- gsub("Log", "", str_split(results$Sample, "\\.", Inf, T)[,1])
+results <- results %>% pivot_wider(values_from = "value", names_from = "Var")
+results <- as.data.frame(results)
+rownames(results) <- results$Sample
+
+results$Sample <- factor(results$Sample, levels = results$Sample[order(results$`Uniquely mapped reads % `)])
+
+est_read_output <- read.csv("/Users/plezar/Documents/TIME-Lab/SpaceU87_Nov2024/est_read_output.csv")
+est_read_output$Sample_Seq <- factor(est_read_output$Sample_Seq, levels = results$Sample[order(results$`Uniquely mapped reads % `)])
+
+p1 <- ggplot(results, aes(x = Sample, y = `Number of input reads `)) +
+  geom_bar(stat = "identity", fill = "white", color = "black") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Number of input reads") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+p2 <- ggplot(est_read_output, aes(x = Sample_Seq, y = Est_read_output*1e06)) +
+  geom_bar(stat = "identity", fill = "white", color = "black") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Est. read output") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+p3 <- ggplot(results, aes(x = Sample, y = `Uniquely mapped reads number `)) +
+  geom_bar(stat = "identity", fill = "white", color = "black") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Uniquely mapped reads number") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+p4 <- ggplot(results, aes(x = Sample, y = `Uniquely mapped reads % `)) +
+  geom_bar(stat = "identity", fill = "white", color = "black") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Uniquely mapped reads %") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+p5 <- ggplot(results, aes(x = Sample, y = `% of reads unmapped: too short `)) +
+  geom_bar(stat = "identity", fill = "white", color = "black") +
+  theme_cowplot() +
+  labs(x = NULL, y = "% of reads unmapped: too short") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+p <- p1 + p2 + p3 + p4 + p5 + plot_layout(ncol = 3)
+```
+
+```{r, fig.width=15, fig.height=8}
+p
+```
+
+The following samples have very low mapping due to being "too short":
+
+* UuG1
+* UuG1_b
+* UuG2
+* TuG2
+* Tc3
+
+These samples also had the lowest amount of starting material, and the worst RNA quality, therefore the low mapping rate is likely due to RNA fragmentation and higher adapter contamination.
+
+
+
+## UMI tools
+
+### Edit distances
+
+The **edit_distance.tsv** file from UMI-tools reports statistics about the uniqueness and clustering of Unique Molecular Identifiers (UMIs) before and after deduplication. It’s reported separately for each edit distance and separately for positions with only one UMI. `unique` reports the number of UMIs observed at each edit distance where every UMI is assumed to represent an independent molecule in the biological sample (i.e. no UMI collapse is performed). `directional` shows the number of UMIs observed at each edit distance post-deduplication using the `directional` scheme. `_null` columns show what we would expect to see if UMIs were randomly distributed between mapping locations (taking into account any biases in the overall usage of particular UMI sequences).
+
+```{r}
+path <- "/Users/plezar/Documents/TIME-Lab/SpaceU87_Nov2024/UMITOOLS_logs/"
+files <- list.files(path, pattern = "edit_distance.tsv")
+
+merge_out <- function (files) {
+  df <- read.delim(paste0(path, files[1]), header= T)
+}
+
+results <- lapply(files, merge_out)
+names(results) <- files
+
+results <- bind_rows(results, .id="Sample")
+results$Sample <- gsub("_deduplicated_edit_distance", "", str_split(results$Sample, "\\.", Inf, T)[,1])
+results <- as.data.frame(results)
+
+
+# Create grouped bar plot
+p2 <- ggplot(results %>% filter(edit_distance != "Single_UMI") %>% select(Sample, directional, directional, directional_null, edit_distance) %>% pivot_longer(!c(Sample, edit_distance)), aes(x = edit_distance, y = value, fill = name)) +
+  facet_wrap(~Sample, ncol=4) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Edit distance") +
+  ggtitle("Directional")
+
+p1 <- ggplot(results %>% filter(edit_distance != "Single_UMI") %>% select(Sample, unique, unique_null, edit_distance) %>% pivot_longer(!c(Sample, edit_distance)), aes(x = edit_distance, y = value, fill = name)) +
+  facet_wrap(~Sample, ncol=4) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Edit distance") +
+  ggtitle("Unique")
+```
+
+```{r, fig.height=15, fig.width=10}
+p1 + p2 + plot_layout(ncol=1)
+```
+
+Before de-duplication (`unique` data), there's a shift in observed edit distances towards more similar UMIs, suggesting a high level of duplication (i.e. due to PCR amplification of libraries). After de-duplication (`directional` scheme), the distribution becomes more similar to what is expected under a random model. This means that UMI collapsing (deduplication) is working well, effectively grouping similar UMIs and removing artificial duplicates.
+
+### UMI per position
+
+The _stats_per_umi_per_position.tsv file simply tabulates the counts for unique combinations of UMI and position.
+
+```{r}
+files <- list.files(path, pattern = "per_umi_per_position.tsv")
+
+merge_out <- function (files) {
+  df <- read.delim(paste0(path, files[1]), header= T)
+}
+
+results <- lapply(files, merge_out)
+names(results) <- files
+
+results <- bind_rows(results, .id="Sample")
+results$Sample <- gsub("_deduplicated_per_umi_per_position", "", str_split(results$Sample, "\\.", Inf, T)[,1])
+results <- as.data.frame(results)
+
+p <- ggplot(results %>% group_by(Sample) %>% mutate(instances_pre_freq = instances_pre/sum(instances_pre), instances_post_freq = instances_post/sum(instances_post)) %>% select(-c(instances_pre, instances_post)) %>% filter(counts < 25) %>% pivot_longer(!c(Sample, counts)), aes(x = counts, y = value, fill = name)) +
+  facet_wrap(~Sample, ncol=3) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_cowplot() +
+  labs(x = NULL, y = "Instances")
+```
+
+```{r, fig.height=15, fig.width=10}
+p
+```
+
+Looks fairly resonable to me, since UMI collapse increases individual counts by merging slightly different reads into a consensus sequence.
+
+### Stats per UMI
+
+```{r}
+files <- list.files(path, pattern = "per_umi.tsv")
+
+merge_out <- function (files) {
+  df <- read.delim(paste0(path, files[1]), header= T)
+}
+
+results <- lapply(files, merge_out)
+names(results) <- files
+
+results <- bind_rows(results, .id="Sample")
+results$Sample <- gsub("_deduplicated_per_umi", "", str_split(results$Sample, "\\.", Inf, T)[,1])
+results <- as.data.frame(results)
+
+p <- ggplot(results %>% group_by(Sample) %>% select(Sample, times_observed_pre, times_observed_post) %>% pivot_longer(!Sample), aes(x = value, fill = name)) +
+  facet_wrap(~Sample, ncol=3) +
+  geom_histogram(position="dodge") +
+  theme_cowplot() +
+  xlim(0, 3000) +
+  labs(x = NULL, y = "Instances")
+```
+
+```{r, fig.width=10, fig.height=15}
+p
+```
+
+The differences in times_observed_pre distributions across samples suggest differences in library complexity. For those that are distributed poison-like (peak at 1 and decay), I wonder whether these correspond to samples with high RNA input or better RNA quality. I don't see any trend with respect to the 5 samples I flagged above based on STAR alignment:
+
+* UuG2
+* Tc3
+* UuG1
+* TuG2
+* UuG1
+
+```{r}
+p <- ggplot(results %>% group_by(Sample) %>% select(Sample, total_counts_pre, total_counts_post) %>% pivot_longer(!Sample), aes(x = value, fill = name)) +
+  facet_wrap(~Sample, ncol=3) +
+  geom_histogram(position="dodge") +
+  theme_cowplot() +
+  xlim(0, 2000) +
+  scale_y_log10() +
+  labs(x = NULL, y = "Instances")
+```
+
+```{r, fig.width=10, fig.height=15}
+p
+```
+
+The distributions are very similar except for the lower end of the pre-duplication distribution which is higher compared to post-duplication. I am assuming that those represent low-confidence UMIs that are being removed post-duplication.

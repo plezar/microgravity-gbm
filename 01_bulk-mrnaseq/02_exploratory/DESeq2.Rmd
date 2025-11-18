@@ -1,0 +1,546 @@
+---
+title: "DESeq2 Analysis of Space U87THP Spheroids"
+author: "Maksym Zarodniuk"
+date: "Compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r, include=F}
+suppressPackageStartupMessages(library(DESeq2))
+suppressPackageStartupMessages(library(metaseqR2))
+suppressPackageStartupMessages(library(tidyverse))
+library(ggrepel)
+library(patchwork)
+```
+
+```{r, include=F}
+count_mtx <- read.csv("/Users/mzarodniuk/Documents/Scripts/SpaceU87_Nov2024_bulk/data/count_mtx.csv", row.names = 1)
+meta_data <- read.csv("/Users/mzarodniuk/Documents/Scripts/SpaceU87_Nov2024_bulk/data/meta_data.csv")
+rownames(meta_data) <- meta_data$Sample
+meta_data <- meta_data[colnames(count_mtx),]
+```
+
+```{r}
+sort(colSums(count_mtx)/1e06)
+```
+
+Since some samples have drastically different library sizes (0.7M vs 17M), it is helpful to downsample the data to the same library size to avoid biases. Below, I run PCA on full and downsampled data.
+
+## PCA
+
+```{r DESEQ2_FULL, cache=T, message=FALSE, warning=FALSE, echo=F}
+dds_full <- DESeqDataSetFromMatrix(countData = count_mtx,
+                              colData = meta_data,
+                              design =  ~ Group_cell + Group_gravity)
+
+# pre-filtering
+smallestGroupSize <- 2
+keep <- rowSums(counts(dds_full) >= 10) >= smallestGroupSize
+dds_full <- dds_full[keep,]
+
+dds_full <- estimateSizeFactors(dds_full)
+dds_full <- DESeq(dds_full)
+vsd_full <- vst(dds_full)
+```
+
+```{r DESEQ2_DOWNSAMPLED, cache=T, message=FALSE, warning=FALSE, echo=F}
+dds <- DESeqDataSetFromMatrix(countData = downsampleCounts(count_mtx),
+                              colData = meta_data,
+                              design =  ~ Group_cell + Group_gravity)
+
+# pre-filtering
+smallestGroupSize <- 2
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+
+dds <- estimateSizeFactors(dds)
+dds <- DESeq(dds)
+vsd <- vst(dds)
+```
+
+```{r PCA, include=F}
+pca_plot_cell <- plotPCA(vsd, intgroup = "Group_cell", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data)), label.size = 0.1, max.overlaps=Inf) + xlim(-50, 100) + ylim(-40, 40) + ggtitle("Downsampled")
+pca_plot_cell_full <- plotPCA(vsd_full, intgroup = "Group_cell", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data)), label.size = 0.1, max.overlaps=Inf) + xlim(-50, 100) + ylim(-40, 40) + ggtitle("Original")
+
+pca_plot_grav <- plotPCA(vsd, intgroup = "Group_gravity", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data)), label.size = 0.1, max.overlaps=Inf) + xlim(-50, 100) + ylim(-40, 40) + ggtitle("Downsampled")
+pca_plot_grav_full <- plotPCA(vsd_full, intgroup = "Group_gravity", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data)), label.size = 0.1, max.overlaps=Inf) + xlim(-50, 100) + ylim(-40, 40) + ggtitle("Original")
+
+total_counts <- data.frame(Original = colSums(count_mtx), Downsampled = colSums(downsampleCounts(count_mtx)))
+total_counts$Sample_name <- rownames(total_counts)
+
+total_counts_original <- ggplot(data=total_counts, aes(x=reorder(Sample_name, `Original`), y=`Original`)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  xlab(NULL)
+
+total_counts_downsampled <- ggplot(data=total_counts, aes(x=reorder(Sample_name, `Original`), y=`Downsampled`)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  xlab(NULL)
+
+p <- (pca_plot_cell + pca_plot_grav) / (pca_plot_cell_full + pca_plot_grav_full) / (total_counts_original | total_counts_downsampled) + plot_layout(heights = c(2,2,1))
+```
+
+```{r, fig.width=15, fig.height=15, warning=F, message=F, echo=F}
+p
+```
+
+Based on the above PCA, there is clear clustering of samples based on library size, despite library normalization by DESeq2. Therefore, I downsample the data for DE analysis going forward, and do so separately for U87 and U87THP groups to preserve as much information as possible.
+
+## U87
+
+```{r DESEQ2_U87, cache=T, message=F, warning=F, echo=F}
+idx <- meta_data$Group_cell=="U87"
+count_mtx_sub <- count_mtx[,idx]
+meta_data_sub <- meta_data[idx,]
+
+set.seed(42)
+count_mtx_downsampled <- downsampleCounts(count_mtx_sub)
+dds <- DESeqDataSetFromMatrix(countData = count_mtx_downsampled,
+                              colData = meta_data_sub,
+                              design =  ~ Group_gravity)
+
+smallestGroupSize <- 2
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+
+dds <- estimateSizeFactors(dds)
+dds <- DESeq(dds)
+vsd <- vst(dds)
+```
+
+```{r, echo=F, fig.width=15, fig.height=5, message=F, warning=F}
+plotPCA(vsd, intgroup = "Group_gravity", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data_sub)), label.size = 0.1, max.overlaps=Inf)
+```
+
+```{r, include=F}
+res <- results(dds)
+res <- results(dds, alpha = 0.05, contrast=c("Group_gravity", "uG", "KSC"))
+res <- as.data.frame(res) %>% drop_na(padj)
+write.csv(res, "results/u87_degs.csv")
+```
+
+There are `r sum(res$padj<0.05)` differentially expressed genes (p<0.05).
+
+### GO ORA
+
+```{r include=F}
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+library(clusterProfiler)
+library(ReactomePA)
+library(msigdbr)
+```
+
+```{r include=F}
+res$entrezid <- mapIds(org.Hs.eg.db,
+                          keys=rownames(res),
+                          column="ENTREZID",
+                          keytype="SYMBOL",
+                          multiVals = "first")
+```
+
+```{r GO_ORA_U87, include=F, cache=T}
+resSig <- as.data.frame(subset(res, padj < 0.05))
+geneUP <- filter(resSig, log2FoldChange > 1)$entrezid
+geneDOWN <- filter(resSig, log2FoldChange < -1)$entrezid
+
+geneList <- res$log2FoldChange
+names(geneList) <- as.character(res$entrezid)
+geneList <- sort(geneList, decreasing = TRUE)
+
+goORA_UP_ALL_simple <- clusterProfiler::simplify(enrichGO(gene = geneUP,
+                         universe      = names(geneList),
+                         OrgDb         = org.Hs.eg.db,
+                         ont           = "ALL",
+                         pAdjustMethod = "BH",
+                         pvalueCutoff  = 0.05,
+                         qvalueCutoff  = 0.05,
+                         readable      = TRUE), cutoff = 0.5, by = "pvalue", dplyr::select_fun=min, measure = "Wang")
+
+goORA_DOWN_ALL_simple <- clusterProfiler::simplify(enrichGO(gene = geneDOWN,
+                         universe      = names(geneList),
+                         OrgDb         = org.Hs.eg.db,
+                         ont           = "ALL",
+                         pAdjustMethod = "BH",
+                         pvalueCutoff  = 0.05,
+                         qvalueCutoff  = 0.05,
+                         readable      = TRUE), cutoff = 0.5, by = "pvalue", dplyr::select_fun=min, measure = "Wang")
+
+goORA_UP_ALL_simple_df <- goORA_UP_ALL_simple@result
+goORA_DOWN_ALL_simple_df <- goORA_DOWN_ALL_simple@result
+goORA_UP_ALL_simple_df$group <- "uG"
+goORA_DOWN_ALL_simple_df$group <- "KSC"
+
+goORA_ALL_simple <- rbind(goORA_UP_ALL_simple_df, goORA_DOWN_ALL_simple_df)
+```
+
+```{r, fig.width=15, fig.height=3, echo=F}
+p1 <-  dotplot(goORA_UP_ALL_simple, showCategory=10) + ggtitle("Upregualted in µG")
+p2 <- dotplot(goORA_DOWN_ALL_simple, showCategory=10) + ggtitle("Downregulated in µG")
+
+p1 + p2
+```
+
+```{r, echo=F}
+DT::datatable(goORA_ALL_simple %>% dplyr::select(Description, FoldEnrichment, GeneRatio, p.adjust))
+```
+
+Overrepresentation analysis using GO shows upregulation of RNA splicing and downregulation of collagen synthesis in microgravity.
+
+### KEGG ORA
+
+```{r, include=F}
+kk_UP <- enrichKEGG(gene         = geneUP,
+                 organism     = 'hsa',
+                 pvalueCutoff = 0.05)
+kk_DOWN <- enrichKEGG(gene         = geneDOWN,
+                 organism     = 'hsa',
+                 pvalueCutoff = 0.05)
+
+kk_UP_df <- kk_UP@result
+kk_DOWN_df <- kk_DOWN@result
+kk_UP_df$group <- "µG"
+kk_DOWN_df$group <- "KSC"
+kk_df <- rbind(kk_UP_df, kk_DOWN_df)
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+p1 <- dotplot(kk_UP, showCategory=15) + ggtitle("Upregualted in µG")
+p1 + plot_spacer()
+```
+
+KEGG does not return any significant terms enriched in downregulated genes. Upregulated terms are not super pathway-specific.
+
+### Reactome ORA
+
+```{r, include=F}
+re_UP <- enrichPathway(gene=geneUP, pvalueCutoff = 0.05, readable=TRUE)
+re_DOWN <- enrichPathway(gene=geneDOWN, pvalueCutoff = 0.05, readable=TRUE)
+
+re_UP_df <- re_UP@result
+re_DOWN_df <- re_DOWN@result
+re_UP_df$group <- "µG"
+re_DOWN_df$group <- "KSC"
+re_df <- rbind(re_DOWN_df, re_UP_df)
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+p1 <- dotplot(re_UP, showCategory=7) + ggtitle("Upregualted in µG")
+p2 <- dotplot(re_DOWN, showCategory=15) + ggtitle("Downregulated in µG")
+p1 + p2
+```
+
+Reactome ORA results align with those using GO: upregulation of RNA splicing and dowregulation of ECM/collagen expression.
+
+### HALLMARK GSEA
+
+```{r, include=F}
+m_df <- msigdbr(species = "Homo sapiens")
+m_t2g <- msigdbr(species = "Homo sapiens", category = "H") %>% dplyr::dplyr::select(gs_name, entrez_gene)
+hallmarkGSEA <- GSEA(geneList, TERM2GENE = m_t2g)
+```
+
+```{r, echo=F}
+DT::datatable(as.data.frame(hallmarkGSEA) %>% dplyr::select(Description, NES, p.adjust))
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+library(tidyverse)
+p1 <- gseaplot(hallmarkGSEA, "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION", by = "runningScore", color.line = "red", color.vline = NA) + ggtitle("HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION")
+p2 <- gseaplot(hallmarkGSEA, "HALLMARK_INFLAMMATORY_RESPONSE", by = "runningScore", color.line = "red", color.vline = NA) + ggtitle("HALLMARK_INFLAMMATORY_RESPONSE")
+p1 + p2
+```
+
+GSEA on HALLMARK terms suggests that U87 cells become less mesenchymal in microgravity as well as downregulate inflammatory gene expression. Based on all of the above, major themes seem to be upregulation of RNA splicing by NMD, and downregulation of mesenchymal gene expression. Below fig shows the expression of some mesenchymal-related genes:
+
+```{r, fig.width=15, fig.height=7.5, echo=F}
+par(mfrow=c(2,3))
+plotCounts(dds, gene="COL8A1", intgroup = "Group_gravity")
+plotCounts(dds, gene="COL15A1", intgroup = "Group_gravity")
+plotCounts(dds, gene="COL4A1", intgroup = "Group_gravity")
+plotCounts(dds, gene="LUM", intgroup = "Group_gravity")
+plotCounts(dds, gene="FBLN2", intgroup = "Group_gravity")
+plotCounts(dds, gene="PLOD2", intgroup = "Group_gravity")
+```
+
+```{r}
+genes <- c("COL8A1", "COL15A1", "COL4A1", "LUM", "FBLN2", "PLOD2")
+
+d <- data.frame()
+for (i in genes) {
+  d_sub <- plotCounts(dds, gene=i, intgroup = "Group_gravity", returnData = T)
+  d_sub$Gene <- i
+  d <- rbind(d, d_sub)
+}
+
+write.csv(d, "/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/U87_ECM.csv")
+```
+
+
+## U87+THP1
+
+```{r DESEQ2_U87THP, cache=T, message=F, warning=F, echo=F}
+idx <- meta_data$Group_cell=="U87THP"
+count_mtx_sub <- count_mtx[,idx]
+meta_data_sub <- meta_data[idx,]
+
+set.seed(42)
+count_mtx_downsampled <- downsampleCounts(count_mtx_sub)
+dds <- DESeqDataSetFromMatrix(countData = count_mtx_downsampled,
+                              colData = meta_data_sub,
+                              design =  ~ Group_gravity)
+
+smallestGroupSize <- 2
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+
+dds <- estimateSizeFactors(dds)
+dds <- DESeq(dds)
+vsd <- vst(dds)
+```
+
+```{r, echo=F, fig.width=15, fig.height=5, warning=F, message=F}
+plotPCA(vsd, intgroup = "Group_gravity", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data_sub)), label.size = 0.1, max.overlaps=Inf)
+```
+
+```{r, include=F}
+res <- results(dds)
+res <- results(dds, alpha = 0.05, contrast=c("Group_gravity", "uG", "KSC"))
+res <- as.data.frame(res) %>% drop_na(padj)
+write.csv(res, "/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/results/u87thp_degs.csv")
+```
+
+```{r}
+source("/Users/mzarodniuk/Documents/TIME-Lab/Patzke_2024/util.R")
+
+res$DE <- call_DE_genes(res$log2FoldChange, res$padj, 1, 0.05)
+
+symbols <- c("TP53", "PTEN")
+
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+gene_descriptions <- AnnotationDbi::dplyr::select(
+  org.Hs.eg.db,
+  keys = rownames(res),
+  columns = c("ENTREZID", "GENENAME"),
+  keytype = "SYMBOL"
+)
+res <- res %>% rownames_to_column("SYMBOL") %>% left_join(gene_descriptions) %>% arrange(padj)
+write.csv(res, "/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/U87-THP1_DEGs.csv")
+
+
+dups <- res$SYMBOL[duplicated(res$SYMBOL)]
+res <- res[!res$SYMBOL%in%dups,]
+rownames(res) <- res$SYMBOL
+p <- volcano_plot(res, "U87+THP1")
+ggsave(p, path="/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/", filename= "U87-THP1_Volcano_1.pdf", width=7, height=10, dpi=700)
+ggsave(p, path="/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/", filename= "U87-THP1_Volcano_2.pdf", width=6, height=7, dpi=700)
+ggsave(p, path="/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/", filename= "U87-THP1_Volcano_3.pdf", width=3, height=4, dpi=700)
+```
+
+
+There are `r sum(res$padj<0.05)` differentially expressed genes (p<0.05). I am curious if removing `Tc3_S10_L001` would help in terms of statistical power, since it's clearly an outlier driven by sequencing depth.
+
+```{r DESEQ2_U87THP_no_Tc3_S10_L001, cache=T, echo=F, warning=F, message=F}
+idx <- meta_data$Group_cell=="U87THP" & rownames(meta_data)!="Tc3_S10_L001"
+count_mtx_sub <- count_mtx[,idx]
+meta_data_sub <- meta_data[idx,]
+
+set.seed(42)
+count_mtx_downsampled <- downsampleCounts(count_mtx_sub)
+dds <- DESeqDataSetFromMatrix(countData = count_mtx_downsampled,
+                              colData = meta_data_sub,
+                              design =  ~ Group_gravity)
+
+smallestGroupSize <- 2
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+
+dds <- estimateSizeFactors(dds)
+dds <- DESeq(dds)
+vsd <- vst(dds)
+```
+
+```{r, echo=F, fig.width=15, fig.height=5, message=FALSE, warning=F}
+plotPCA(vsd, intgroup = "Group_gravity", ntop = 5000) + geom_label_repel(aes(label = rownames(meta_data_sub)), label.size = 0.1, max.overlaps=Inf)
+```
+
+```{r, include=F}
+res <- results(dds)
+res <- results(dds, alpha = 0.05, contrast=c("Group_gravity", "uG", "KSC"))
+res <- as.data.frame(res) %>% drop_na(padj)
+```
+
+There are `r sum(res$padj<0.05)` differentially expressed genes (p<0.05). The PCA looks much cleaner and there are 5 more DEGs.
+
+
+### GO ORA
+
+```{r include=F}
+res$entrezid <- mapIds(org.Hs.eg.db,
+                          keys=rownames(res),
+                          column="ENTREZID",
+                          keytype="SYMBOL",
+                          multiVals = "first")
+```
+
+
+```{r GO_ORA_U87THP, include=F, cache=T}
+resSig <- as.data.frame(subset(res, padj < 0.05))
+geneUP <- filter(resSig, log2FoldChange > 1)$entrezid
+geneDOWN <- filter(resSig, log2FoldChange < -1)$entrezid
+
+geneList <- res$log2FoldChange
+names(geneList) <- as.character(res$entrezid)
+geneList <- sort(geneList, decreasing = TRUE)
+
+goORA_UP_ALL_simple <- clusterProfiler::simplify(enrichGO(gene = geneUP,
+                         universe      = names(geneList),
+                         OrgDb         = org.Hs.eg.db,
+                         ont           = "ALL",
+                         pAdjustMethod = "BH",
+                         pvalueCutoff  = 0.05,
+                         qvalueCutoff  = 0.05,
+                         readable      = TRUE), cutoff = 0.5, by = "pvalue", dplyr::select_fun=min, measure = "Wang")
+
+goORA_DOWN_ALL_simple <- clusterProfiler::simplify(enrichGO(gene = geneDOWN,
+                         universe      = names(geneList),
+                         OrgDb         = org.Hs.eg.db,
+                         ont           = "ALL",
+                         pAdjustMethod = "BH",
+                         pvalueCutoff  = 0.05,
+                         qvalueCutoff  = 0.05,
+                         readable      = TRUE), cutoff = 0.5, by = "pvalue", dplyr::select_fun=min, measure = "Wang")
+
+goORA_UP_ALL_simple_df <- goORA_UP_ALL_simple@result
+goORA_DOWN_ALL_simple_df <- goORA_DOWN_ALL_simple@result
+goORA_UP_ALL_simple_df$group <- "uG"
+goORA_DOWN_ALL_simple_df$group <- "KSC"
+
+goORA_ALL_simple <- rbind(goORA_UP_ALL_simple_df, goORA_DOWN_ALL_simple_df)
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+library(patchwork)
+p1 <-  dotplot(goORA_UP_ALL_simple, showCategory=10) + ggtitle("Upregualted in µG")
+p2 <- dotplot(goORA_DOWN_ALL_simple, showCategory=10) + ggtitle("Downregulated in µG")
+
+p1 + p2
+```
+
+```{r, echo=F}
+DT::datatable(goORA_ALL_simple %>% dplyr::select(Description, FoldEnrichment, GeneRatio, p.adjust))
+```
+
+GO ORA shows upregulation of chemokines and downregulation of insulin-like growth factor signaling.
+
+### KEGG ORA
+
+```{r, include=F}
+kk_UP <- enrichKEGG(gene         = geneUP,
+                 organism     = 'hsa',
+                 pvalueCutoff = 0.05)
+kk_DOWN <- enrichKEGG(gene         = geneDOWN,
+                 organism     = 'hsa',
+                 pvalueCutoff = 0.05)
+
+kk_UP_df <- kk_UP@result
+kk_DOWN_df <- kk_DOWN@result
+kk_UP_df$group <- "µG"
+kk_DOWN_df$group <- "KSC"
+kk_df <- rbind(kk_UP_df, kk_DOWN_df)
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+p1 <- dotplot(kk_UP, showCategory=15) + ggtitle("Upregualted in µG")
+#p2 <- dotplot(kk_DOWN, showCategory=15) + ggtitle("Upregualted in µG")
+p1 + plot_spacer()
+```
+
+No enriched terms are found in downregulated gene set. KEGG shows upregulation of TNF signaling and cytokine-cytokine receptor interaction. Some of the genes that are in the latter term:
+
+```{r, message=F, warning=F, fig.width=15, fig.height=7.5, echo=F}
+cytok_genes <- mapIds(org.Hs.eg.db,
+       keys=as.vector(str_split(kk_df$geneID[1], "/", Inf, T)),
+       column="SYMBOL",
+       keytype="ENTREZID",
+       multiVals = "first")
+
+par(mfrow=c(2,3))
+for (i in 1:length(cytok_genes)) {
+  plotCounts(dds, gene=cytok_genes[i], intgroup = "Group_gravity")
+}
+```
+TNFa signaling term likely shows up because TNFSF15 is a member of the same family of proteins; otherwise, most of these cytokines are immunosuppressive.  
+
+### Reactome ORA
+
+```{r, include=F}
+re_UP <- enrichPathway(gene=geneUP, pvalueCutoff = 0.05, readable=TRUE)
+re_DOWN <- enrichPathway(gene=geneDOWN, pvalueCutoff = 0.05, readable=TRUE)
+
+re_UP_df <- re_UP@result
+re_DOWN_df <- re_DOWN@result
+re_UP_df$group <- "µG"
+re_DOWN_df$group <- "KSC"
+re_df <- rbind(re_DOWN_df, re_UP_df)
+```
+
+```{r, fig.width=15, fig.height=5, echo=F}
+p1 <- dotplot(re_UP, showCategory=7) + ggtitle("Upregualted in µG")
+p2 <- dotplot(re_DOWN, showCategory=7) + ggtitle("Downregulated in µG")
+p1 + p2
+```
+
+Reactome suggests that PTGS2, CXCL2, LIF, IL23A, and SERPINB2 are related to three different IL signaling pathways (IL-10, IL-4/IL-13, IL-12). It seems like PTGS2 and LIF have overlapping roles across these pathways. IL-10 and IL-4/IL-13 seem to be immunosuppressive. Interestingly, there is also IL23A which is a part of IL-12 signaling, suggesting a small pro-inflammatory component. Both Reactome and GO suggest downregulation of IGF signaling, which seems to be associated with more aggressive and immune-suppressive GBM.
+
+```{r, message=F, warning=F, fig.width=15, fig.height=7.5, echo=F}
+par(mfrow=c(1,2))
+plotCounts(dds, gene="IGFBP1", intgroup = "Group_gravity")
+plotCounts(dds, gene="IGFBP3", intgroup = "Group_gravity")
+```
+
+### HALLMARK GSEA
+
+```{r, include=F}
+m_df <- msigdbr(species = "Homo sapiens")
+m_t2g <- msigdbr(species = "Homo sapiens", category = "H") %>% dplyr::dplyr::select(gs_name, entrez_gene)
+hallmarkGSEA <- GSEA(geneList, TERM2GENE = m_t2g)
+```
+
+```{r, echo=F}
+DT::datatable(as.data.frame(hallmarkGSEA) %>% dplyr::select(Description, NES, p.adjust))
+```
+
+```{r, fig.width=10, fig.height=5, echo=F}
+p1 <- gseaplot(hallmarkGSEA, "HALLMARK_TNFA_SIGNALING_VIA_NFKB", by = "runningScore", color.line = "red", color.vline = NA) + ggtitle("HALLMARK_TNFA_SIGNALING_VIA_NFKB")
+p2 <- gseaplot(hallmarkGSEA, "HALLMARK_INFLAMMATORY_RESPONSE", by = "runningScore", color.line = "red", color.vline = NA) + ggtitle("HALLMARK_INFLAMMATORY_RESPONSE")
+p1 + p2
+```
+
+Based on all of the above, meain themes seem to be upregulation of (mostly immunesuppressive) cytokine expression (possibly through IL-10, IL-4/13 signaling) and downregulation of IGF signaling pathway.
+
+```{r, fig.width=15, fig.height=7.5, echo=F}
+par(mfrow=c(2,3))
+plotCounts(dds, gene="IL23A", intgroup = "Group_gravity")
+plotCounts(dds, gene="CXCL2", intgroup = "Group_gravity")
+plotCounts(dds, gene="LIF", intgroup = "Group_gravity")
+plotCounts(dds, gene="PTGS2", intgroup = "Group_gravity")
+plotCounts(dds, gene="IL1RL1", intgroup = "Group_gravity")
+plotCounts(dds, gene="SERPINB2", intgroup = "Group_gravity")
+```
+
+```{r}
+genes <- c("IL23A", "CXCL2", "LIF", "PTGS2", "IL1RL1", "SERPINB2", "IGFBP1", "IGFBP3")
+
+d <- data.frame()
+for (i in genes) {
+  d_sub <- plotCounts(dds, gene=i, intgroup = "Group_gravity", returnData = T)
+  d_sub$Gene <- i
+  d <- rbind(d, d_sub)
+}
+
+write.csv(d, "/Users/mzarodniuk/Documents/TIME-Lab/SpaceU87_Nov2024/U87THP_cytokines.csv")
+```
+
