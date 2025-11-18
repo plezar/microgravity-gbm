@@ -1,2 +1,24 @@
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Rmd outputs and caches
+*_cache/
+*_files/
+*.html
+
+# Logs
+logs/
+*.o[0-9]*
+
+# Figures / rendered plots
+figures/
+
+# macOS
+.DS_Store
+
+# Data/results (if you want them out of git)
 data/
 results/
