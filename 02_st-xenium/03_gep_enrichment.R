@@ -8,12 +8,12 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(ggplot2)
-source("util.R")
+source("02_st-xenium/util.R")
 
 ## -------Enrichment analysis-------
 
-top_genes <- read.csv("results/xenium/xenium_cNMF_k4_topgenes.csv", row.names = 1)
-gep_scores <- read.csv("results/xenium/xenium_cNMF_k4_gep_scores.csv", row.names = 1)
+top_genes <- read.csv("/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/02_st-xenium/results/xenium_cNMF_k4_topgenes.csv", row.names = 1)
+gep_scores <- read.csv("/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/02_st-xenium/results/xenium_cNMF_k4_gep_scores.csv", row.names = 1)
 
 # res <- run_go_ora(top_genes$X1, rownames(gep_scores), species="human")
 #
@@ -75,7 +75,7 @@ ht <- Heatmap(
   }
 )
 
-pdf("figures/GEP_enrichment.pdf", width = 8, height = 8)
+pdf("/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/02_st-xenium/figures/GEP_enrichment.pdf", width = 8, height = 8)
 draw(ht, heatmap_legend_side = "top")
 dev.off()
 
@@ -93,7 +93,7 @@ dev.off()
 
 ## -------GEP frequency analysis-------
 
-gep_assignments <- read.csv("/Users/mzarodniuk/Documents/Scripts/Alice_Xenium/results/xenium/xenium_cNMF_k4_gep_assignments.csv", row.names = 1)
+gep_assignments <- read.csv("/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/02_st-xenium/results/xenium_cNMF_k4_gep_assignments.csv", row.names = 1)
 
 gep_assignments <- gep_assignments %>%
   mutate(Composition_lvl1 = if_else(grepl("U87", batch), "U87", "U87_THP-1"),
@@ -158,7 +158,7 @@ p2 <- ggplot(gep_freqs, aes(
   scale_color_brewer(palette = "Set2")
 
 p <- p1 + p2
-ggsave(p, path="figures", filename= "GEP_frequency.pdf", width=30, height=15, dpi = 700, units = "cm")
+ggsave(p, path="/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/02_st-xenium/figures", filename= "GEP_frequency.pdf", width=30, height=15, dpi = 700, units = "cm")
 
 # U87: GEP4 goes up. According to GO GSEA of GEP 4, "negative regulation of gene expression, epigenetic" is enriched, which is consistent with mRNA-seq. However, GEP 2 (MES) does not go down.
 # 
