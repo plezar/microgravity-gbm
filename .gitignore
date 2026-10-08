@@ -15,6 +15,7 @@ logs/
 
 # Figures / rendered plots
 figures/
+writing/
 
 # macOS
 .DS_Store
@@ -22,3 +23,24 @@ figures/
 # Data/results (if you want them out of git)
 data/
 results/
+
+# Workflow logs, caches, and temporary files
+.nextflow/
+.nextflow.log*
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.tmp
+01_bulk-mrnaseq/05_homer/*.seq
+
+# Local credentials and downloaded data/model artifacts
+.env
+.env.*
+*.pem
+*.key
+AGENTS.md
+CLAUDE.md
+.claude/
+.codex/
+MANIFEST.txt
+02_st-xenium/biomechanics/src/cellpose_models/
