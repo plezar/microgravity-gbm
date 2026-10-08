@@ -8,12 +8,43 @@ meta_data <- read.csv("01_bulk-mrnaseq/data/meta_data.csv")
 rownames(meta_data) <- meta_data$Sample
 meta_data <- meta_data[colnames(count_mtx),]
 
+## =====Remove duplicates======
+
+rep1 <- "UuG1_b_S12_L001"
+rep2 <- "UuG1_S1_L001"
+new  <- "UuG1"   # name of collapsed sample
+
+# ---- 1) sum counts ----
+collapsed_counts <- count_mtx[, rep1] + count_mtx[, rep2]
+
+# drop the two replicate columns and add the collapsed one
+count_mtx2 <- count_mtx[, setdiff(colnames(count_mtx), c(rep1, rep2)), drop = FALSE]
+count_mtx2 <- cbind(count_mtx2, collapsed_counts)
+colnames(count_mtx2)[ncol(count_mtx2)] <- new
+
+
+# ---- 2) collapse metadata ----
+# Take one row as template (they should match for true tech reps)
+md1 <- meta_data[rep1, , drop = FALSE]
+md2 <- meta_data[rep2, , drop = FALSE]
+
+meta_data2 <- meta_data[setdiff(rownames(meta_data), c(rep1, rep2)), , drop = FALSE]
+md_new <- data.frame(Sample_Alias = "UuG1", Group_cell = "U87", Group_gravity = "uG", Sample = new)
+rownames(md_new) <- new
+meta_data2 <- rbind(meta_data2, md_new)
+
+# ---- 3) final check: order meta_data to match count matrix ----
+meta_data2 <- meta_data2[colnames(count_mtx2), , drop = FALSE]
+
+# outputs:
+# count_mtx2, meta_data2
+
 ## =====DESeq2=====
 
 set.seed(42)
-count_mtx_downsampled <- downsampleCounts(count_mtx)
-dds <- DESeqDataSetFromMatrix(countData = count_mtx_downsampled,
-                              colData = meta_data,
+#count_mtx_downsampled <- downsampleCounts(count_mtx2)
+dds <- DESeqDataSetFromMatrix(countData = count_mtx2,
+                              colData = meta_data2,
                               design =  ~ Group_gravity + Group_cell + Group_gravity:Group_cell)
 
 # pre-filtering
@@ -119,7 +150,7 @@ p <- ggplot(deg_counts_long, aes(x = comparison, y = count, fill = direction)) +
   ) +
   
   scale_fill_manual(values = c("up" = "#f6d8cb", "down" = "#d6e6f2")) +
-  scale_color_manual(values = c("up" = "black", "down" = "black")) +
+  scale_color_manual(values = c("up" = "#7b0f0f", "down" = "#0b3c6f")) +
   
   coord_flip() +
   scale_x_discrete(position = "top") +
@@ -151,7 +182,7 @@ DEG_sets <- list(
   "uG (U87THP vs U87)"     = rownames(res_uG)[which(res_uG$padj < 0.05)],
   "KSC (U87THP vs U87)"    = rownames(res_KSC)[which(res_KSC$padj < 0.05)]
 )
-pdf("01_bulk-mrnaseq/results/figures/deg_upset_plot.pdf", width = 2.5, height = 4)
+pdf("01_bulk-mrnaseq/results/figures/deg_upset_plot.pdf", width = 3.5, height = 4)
 upset(
   fromList(DEG_sets),
   nsets = 4,

@@ -227,3 +227,30 @@ run_c8_gsea <- function(
   
   return(gsea_res)
 }
+
+#' Create a quadrant matrix like in Miller et al. 2025 (Nature)
+#'
+#' This function takes a data frame with four columns,
+#' computes two difference scores (X, Y),
+#' and rotates the resulting matrix by 45 degrees.
+#'
+#' @param usage_d A numeric data frame or matrix with at least four columns.
+#'
+#' @return Quadrant matrix with four quadrants: upper left (3), upper right (1), lower left (2), lower right (4).
+#' @examples
+#' # usage_d must have columns: [a, b, c, d]
+#' rotated <- quadrant_matrix(usage_d)
+quadrant_matrix <- function(usage_d) {
+  X <- (usage_d[,1] - usage_d[,2])
+  Y <- (usage_d[,3] - usage_d[,4])
+  
+  M <- cbind(X, Y)
+  
+  theta <- 45 * pi/180
+  R <- matrix(c(cos(theta), -sin(theta),
+                sin(theta),  cos(theta)), nrow = 2)
+  
+  M_rot <- M %*% R
+  
+  return(M_rot)
+}

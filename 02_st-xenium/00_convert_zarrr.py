@@ -8,5 +8,3 @@ dirs = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 for d in dirs:
     sdata = xenium(os.path.join(path, d))
     sdata.write(os.path.join(out_path, f'{d}.zarr'))
-
-

@@ -71,7 +71,15 @@ df <- df[!is.na(df$ENTREZID),]
 
 # DEFINE GENE LISTS AND UNIVERSE
 # all tested genes (background)
-gene_universe <- unique(df$ENTREZID)
+count_mtx <- read.csv("/Users/mzarodniuk/Documents/Scripts/microgravity-gbm/01_bulk-mrnaseq/data/count_mtx.csv", row.names = 1)
+gene_universe <- mapIds(
+  org.Hs.eg.db,
+  keys = rownames(count_mtx),
+  keytype = "SYMBOL",
+  column = "ENTREZID",
+  multiVals = "first"
+)
+
 # genes of interest (here: those with padj < 0.05; adjust threshold as needed)
 gene_entrez   <- df %>% filter(padj < 0.05) %>% pull("ENTREZID")
 gene_entrez_up   <- df %>% filter(padj < 0.05, log2FoldChange > 0) %>% pull("ENTREZID")
@@ -102,7 +110,7 @@ write.csv(as.data.frame(go_ora_up),
           file = file.path(ora_dir, "GO_ORA_UP_ALL.csv"),
           row.names = FALSE)
 
-# ORA: GO upregulated (BP/CC/MF) -----------------------------------
+# ORA: GO downregulated (BP/CC/MF) -----------------------------------
 go_ora_down <- enrichGO(gene          = gene_entrez_down,
                         universe      = gene_universe,
                         OrgDb         = org.Hs.eg.db,
@@ -129,15 +137,28 @@ write.csv(as.data.frame(kegg_ora),
           row.names = FALSE)
 
 # ORA: Reactome -----------------------------------
-react_ora <- enrichPathway(gene          = gene_entrez,
+react_ora_up <- enrichPathway(gene          = gene_entrez_up,
                            universe      = gene_universe,
                            organism      = "human",
                            pAdjustMethod = "BH",
                            pvalueCutoff  = 0.05,
                            qvalueCutoff  = 0.2,
                            readable      = TRUE)
-write.csv(as.data.frame(react_ora),
-          file = file.path(ora_dir, "Reactome_ORA.csv"),
+saveRDS(go_ora_up, file.path(ora_dir, "Reactome_ORA_UP_ALL.rds"))
+write.csv(as.data.frame(react_ora_up),
+          file = file.path(ora_dir, "Reactome_ORA_UP_ALL.csv"),
+          row.names = FALSE)
+
+react_ora_down <- enrichPathway(gene          = gene_entrez_down,
+                              universe      = gene_universe,
+                              organism      = "human",
+                              pAdjustMethod = "BH",
+                              pvalueCutoff  = 0.05,
+                              qvalueCutoff  = 0.2,
+                              readable      = TRUE)
+saveRDS(go_ora_down, file.path(ora_dir, "Reactome_ORA_DOWN_ALL.rds"))
+write.csv(as.data.frame(react_ora_down),
+          file = file.path(ora_dir, "Reactome_ORA_DOWN_ALL.csv"),
           row.names = FALSE)
 
 # ORA: Hallmark (MSigDB H) -----------------------------------
@@ -174,6 +195,7 @@ hallmark_gsea <- GSEA(geneList      = gene_list,
                       pAdjustMethod = "BH",
                       nPerm         = 1000,
                       pvalueCutoff  = 0.05)
+saveRDS(hallmark_gsea, file.path(gsea_dir, "Hallmark_GSEA.rds"))
 write.csv(as.data.frame(hallmark_gsea),
           file = file.path(gsea_dir, "Hallmark_GSEA.csv"),
           row.names = FALSE)
