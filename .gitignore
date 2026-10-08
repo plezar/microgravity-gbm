@@ -43,4 +43,4 @@ CLAUDE.md
 .claude/
 .codex/
 MANIFEST.txt
-02_st-xenium/biomechanics/src/cellpose_models/
+02_st-xenium/biomechanics/

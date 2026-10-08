@@ -1,6 +1,6 @@
 # Microgravity GBM analyses
 
-Research scripts and notebooks for analyzing microgravity-associated changes in U87 glioblastoma spheroids and U87–THP-1 cocultures. Analyses cover bulk RNA sequencing, Xenium spatial transcriptomics, Olink proteomics, and image-based mechanical inference.
+Research scripts and notebooks for analyzing microgravity-associated changes in U87 glioblastoma spheroids and U87–THP-1 cocultures. Analyses cover bulk RNA sequencing, Xenium spatial transcriptomics, and Olink proteomics.
 
 ## Repository layout
 
@@ -8,7 +8,6 @@ Research scripts and notebooks for analyzing microgravity-associated changes in 
 | --- | --- |
 | `01_bulk-mrnaseq/` | UMI-based RNA-seq preprocessing, count matrix assembly, DESeq2 differential expression, enrichment and HOMER motif analyses, plotting, and TCGA analyses. |
 | `02_st-xenium/` | Xenium-to-Zarr conversion, SpatialData processing, consensus NMF gene expression programs (GEPs), enrichment, RCTD cell-type deconvolution, and spatial statistics. |
-| `02_st-xenium/biomechanics/` | Segmentation preparation and TensionMap inference of cell pressure, junction tension, and stress. |
 | `03_olink/` | Missing-value imputation, limma differential protein abundance analysis, and volcano plots. |
 | `utils/` | Shared R functions for enrichment analysis and plotting. |
 
@@ -29,8 +28,6 @@ Research scripts and notebooks for analyzing microgravity-associated changes in 
 3. Prepare inputs with `05_prepare_rctd.ipynb`, run RCTD with `05_run_rctd.R`, and inspect the reference and results with `05_rctd_ref.R` and `05_plot_rctd.R`.
 4. The other `05_*` scripts cover GEP scoring, radial spatial analyses, linear models, generalized additive models, and Moran's I.
 5. `06_homer/` contains motif analyses; `06_plot_olink_proteins.ipynb` and `07_olink_hits_analysis.R` connect protein hits to spatial expression.
-
-The `biomechanics/` notebooks prepare segmentation masks and run TensionMap. Backend requirements vary; the MATLAB optimizer requires MATLAB and a valid license.
 
 ### Olink proteomics
 
